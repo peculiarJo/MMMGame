@@ -9,11 +9,11 @@ let ctx   = canvas.getContext('2d')
 let databus = new DataBus()
 
 /**
- * 游戏主函数
+ * Main Method for the game
  */
 export default class Main {
   constructor() {
-    // 维护当前requestAnimationFrame的id
+    // set requestAnimationFrame id
     this.aniId    = 0
 
     this.restart()
@@ -35,7 +35,7 @@ export default class Main {
     this.bindLoop     = this.loop.bind(this)
     this.hasEventBind = false
 
-    // 清除上一局的动画
+    // clear animation from previous frame
     window.cancelAnimationFrame(this.aniId);
 
     this.aniId = window.requestAnimationFrame(
@@ -45,18 +45,26 @@ export default class Main {
   }
 
   /**
-   * 随着帧数变化的敌机生成逻辑
-   * 帧数取模定义成生成的频率
+   * create and append new enemy objects into databus.
+   * generation is triggered by specific frame numbers.
    */
   enemyGenerate() {
-    if ( databus.frame % 30 === 0 ) {
+    let divisor = 50 - Number(databus.score / 10).toFixed(0)
+    console.log(databus.frame, divisor)
+    if ( divisor === 0) {
+      databus.gameOver = true
+    }
+    if ( databus.frame % divisor === 0 ) {
       let enemy = databus.pool.getItemByClass('enemy', Enemy)
-      enemy.init(6)
+      enemy.init(3)
       databus.enemys.push(enemy)
+      databus.score += 1
     }
   }
 
-  // 全局碰撞检测
+  /** 
+   * handle collision detection between
+   */
   collisionDetection() {
     let that = this
 
@@ -87,7 +95,7 @@ export default class Main {
     }
   }
 
-  // 游戏结束后的触摸事件处理逻辑
+  // react to touch input
   touchEventHandler(e) {
      e.preventDefault()
 
@@ -104,8 +112,8 @@ export default class Main {
   }
 
   /**
-   * canvas重绘函数
-   * 每一帧重新绘制所有的需要展示的元素
+   * canvas render method
+   * re-render all elements on screen for every single frame
    */
   render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -128,7 +136,7 @@ export default class Main {
 
     this.gameinfo.renderGameScore(ctx, databus.score)
 
-    // 游戏结束停止帧循环
+    // stop incrementing the frame number on gameover
     if ( databus.gameOver ) {
       this.gameinfo.renderGameOver(ctx, databus.score)
 
@@ -140,7 +148,7 @@ export default class Main {
     }
   }
 
-  // 游戏逻辑更新主函数
+  // updating of game logic
   update() {
     if ( databus.gameOver )
       return;
@@ -158,12 +166,12 @@ export default class Main {
     this.collisionDetection()
 
     if ( databus.frame % 20 === 0 ) {
-      this.player.shoot()
-      this.music.playShoot()
+      //this.player.shoot()
+      //this.music.playShoot()
     }
   }
 
-  // 实现游戏帧循环
+  // transition to next frame
   loop() {
     databus.frame++
 
